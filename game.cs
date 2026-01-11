@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Data.SqlTypes;
+using System.Net;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 
 namespace Game
@@ -29,6 +32,31 @@ namespace Game
                 {
                     case 1:
                     {
+                        if (SaveSystem.SaveExits())
+                            {
+                                Console.WriteLine("a save file already exists. rewrite it?  1 - yes | 2 - no");
+                                string rewite = Console.ReadLine();
+                                if (!int.TryParse(rewite, out int yes))
+                                {
+                                    Console.WriteLine("1 - yes | 2 - no");
+                                    Thread.Sleep(2500);
+                                    break;
+                                }
+                                else if (yes == 1)
+                                {
+                                    Console.WriteLine("no going back now");
+                                    SaveData rewrite = new SaveData { Money = 100};
+                                    SaveSystem.Save(rewrite);
+                                    RunGame(rewrite, rnd, intro);
+                                    break;
+                                }
+                                else if (yes == 2)
+                                {
+                                    Console.WriteLine("be carefull");
+                                    break;
+                                }
+
+                            }
                         Console.WriteLine("lets get crazy");
                         SaveData data = new SaveData { Money = 100 };
                         SaveSystem.Save(data);
@@ -42,7 +70,7 @@ namespace Game
                         if (!SaveSystem.SaveExits())
                         {
                             Console.WriteLine("No save file found...");
-                            Thread.Sleep(1500);
+                            Thread.Sleep(2500);
                             break;
                         }
 
@@ -57,7 +85,7 @@ namespace Game
                         if (!int.TryParse(Console.ReadLine(), out int sure))
                         {
                             Console.WriteLine("1 - yes | 2 - no");
-                            Thread.Sleep(1200);
+                            Thread.Sleep(2500);
                             break;
                         }
 
@@ -71,8 +99,8 @@ namespace Game
                             Console.WriteLine("Im glad");
                         }
 
-                        Thread.Sleep(1200);
-                        break; // ✅ this fixes the fall-through error
+                        Thread.Sleep(2500);
+                        break; 
                     }
                     case 4:
                     {
@@ -88,55 +116,55 @@ namespace Game
 
                     default:
                         Console.WriteLine("Pick 1-5.");
-                        Thread.Sleep(1200);
+                        Thread.Sleep(2500);
                         break;
                 }
             }
         }
         
-        // ✅ You were missing this
+        
         static void RunGame(SaveData data, Random rnd, Intro intro)
         {
-            // New shop each run = new random stock each time you start/continue
+           
             Shop shop = new Shop(rnd);
 
             Console.Clear();
             Console.WriteLine($"Money: {data.Money}$");
-            Thread.Sleep(1200);
+            Thread.Sleep(3000);
 
             intro.runIntro();
-            Thread.Sleep(800);
+            Thread.Sleep(3000);
 
             shop.RunShop();
 
-            // if cart empty, nothing to buy
+            
             if (shop.Cart.Count == 0)
             {
                 Console.WriteLine("store owner: you added nothing.");
-                Thread.Sleep(1500);
+                Thread.Sleep(3000);
                 return;
             }
 
-            // total price
+            
             int total = 0;
             foreach (var entry in shop.Cart)
                 total += entry.Value.Price * entry.Value.Quantity;
 
-            Console.WriteLine($"\nstore owner: total is {total}$");
+            Console.WriteLine($"\nstore owner: thats {total}$");
             Console.WriteLine($"you: i have {data.Money}$");
-            Thread.Sleep(1200);
-
+            Thread.Sleep(3000);
+            // i plan to add a neogotiation option.
             if (data.Money < total)
             {
-                Console.WriteLine("store owner: BROKE. come back when you got money.");
-                Thread.Sleep(1500);
+                Console.WriteLine("store owner: Get your money up boy");
+                Thread.Sleep(3000);
                 return;
             }
 
-            // pay
+            
             data.Money -= total;
 
-            // move cart -> inventory (save items by ID)
+            
             foreach (var entry in shop.Cart)
             {
                 int id = entry.Key;
@@ -150,9 +178,10 @@ namespace Game
 
             SaveSystem.Save(data);
 
-            Console.WriteLine($"store owner: deal. money left: {data.Money}$");
-            Console.WriteLine("store owner: saved.");
-            Thread.Sleep(1500);
+            Console.WriteLine("store owner: come back soon!");
+            Console.WriteLine($"money left: {data.Money}$");
+            Console.WriteLine("(saved.)");
+            Thread.Sleep(3000);
         }
     }
 }
