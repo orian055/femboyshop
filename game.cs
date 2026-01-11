@@ -1,13 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Metrics;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.X86;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
-using System.Xml.Linq;
 
 namespace Game
 {
@@ -15,112 +7,152 @@ namespace Game
     {
         static void Main(string[] args)
         {
-            
             Random rnd = new Random();
-            
+
+            Menus menu = new Menus();
+            Intro intro = new Intro();
+
+            Tut tut = new Tut();
+
+            Console.WriteLine("heyyyyy");
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                Console.Clear();
+                menu.RunMainMenu();
+
+                if (!int.TryParse(Console.ReadLine(), out int choice))
+                    continue;
+
+                switch (choice)
+                {
+                    case 1:
+                    {
+                        Console.WriteLine("lets get crazy");
+                        SaveData data = new SaveData { Money = 100 };
+                        SaveSystem.Save(data);
+
+                        RunGame(data, rnd, intro);
+                        break;
+                    }
+
+                    case 2:
+                    {
+                        if (!SaveSystem.SaveExits())
+                        {
+                            Console.WriteLine("No save file found...");
+                            Thread.Sleep(1500);
+                            break;
+                        }
+
+                        SaveData data = SaveSystem.Load();
+                        RunGame(data, rnd, intro);
+                        break;
+                    }
+
+                    case 3:
+                    {
+                        Console.WriteLine("are you sure? 1 - yes | 2 - no");
+                        if (!int.TryParse(Console.ReadLine(), out int sure))
+                        {
+                            Console.WriteLine("1 - yes | 2 - no");
+                            Thread.Sleep(1200);
+                            break;
+                        }
+
+                        if (sure == 1)
+                        {
+                            Console.WriteLine("A Fresh start, Good luck traveler.");
+                            SaveSystem.DeleteSave();
+                        }
+                        else if (sure == 2)
+                        {
+                            Console.WriteLine("Im glad");
+                        }
+
+                        Thread.Sleep(1200);
+                        break; // ✅ this fixes the fall-through error
+                    }
+                    case 4:
+                    {
+                        tut.runTut();
+                        break;
+                    }
+                    case 5:
+                    {
+                        Console.WriteLine("oof, ill miss you mate");
+                        Environment.Exit(0);
+                        break;
+                    }
+
+                    default:
+                        Console.WriteLine("Pick 1-5.");
+                        Thread.Sleep(1200);
+                        break;
+                }
+            }
+        }
+        
+        // ✅ You were missing this
+        static void RunGame(SaveData data, Random rnd, Intro intro)
+        {
+            // New shop each run = new random stock each time you start/continue
             Shop shop = new Shop(rnd);
-            
- 
-                      
-         
-            Console.WriteLine("skip intro? 1 - yes | 2 - no");
 
-            int intro = 0;
-            bool valid = false;
-
-            while (!valid)
-            {
-                string input = Console.ReadLine();
-
-                if (int.TryParse(input, out intro) && (intro == 1 || intro == 2))
-                {
-                    valid = true;  
-                }
-                else
-                {
-                    Console.WriteLine("1 - YES | 2 - NO");
-                }
-            }
-
-            
-            if (intro == 2)  
-            {
-
-
-                Console.WriteLine("You are traveling in the forest");
-                Thread.Sleep(3000);
-                Console.WriteLine("suddenly you come across a strange store");
-                Thread.Sleep(3000);
-                Console.WriteLine("will you go inside? Y/N");
-                string start = Console.ReadLine().ToLower();
-                    if (start == "y")
-                {
-                    Console.WriteLine("yay");
-                    Thread.Sleep(3000);
-                }
-                else if (start == "n")
-                {
-                    Console.WriteLine("the owner kidnappes you to the store anyway");
-                    Thread.Sleep(3000);
-                }
-                else
-                {
-                    Console.WriteLine("what??? just go inside man");
-                    Thread.Sleep(3000);
-                }
-                Console.WriteLine("you find yourself in the store, its a very comfy place");
-                Thread.Sleep(3000);
-                Console.WriteLine("Store Owner: HELLO!");
-                Thread.Sleep(3000);
-                Console.WriteLine("Store Owner: Welcome to my store!");
-                Thread.Sleep(3000);
-                Console.WriteLine("Store Owner: Here you can buy all sorts of things!");
-                Thread.Sleep(3000);
-                Console.WriteLine("you: what do you sell here?");
-                Thread.Sleep(3000);
-                Console.WriteLine("Store Owner: are you a cop?");
-                Thread.Sleep(3000);
-                Console.WriteLine("you: what? no im not a cop");
-                Thread.Sleep(3000);
-                Console.WriteLine("Store Owner: ARE YOU SURE?");
-                Thread.Sleep(3000);
-                Console.WriteLine("you: im NOT a cop man");
-                Thread.Sleep(3000);
-                Console.WriteLine("Store Owner: then come take a look");
-                Thread.Sleep(3000);
-            }
-            string loading = "STORE INCOMING";
-            foreach (char c in loading)
-            {
-                Console.Write(c);
-                Thread.Sleep(200);
-            }
-
-
-            Thread.Sleep(3000);
-            
-            shop.RunShop();
-            
             Console.Clear();
+            Console.WriteLine($"Money: {data.Money}$");
+            Thread.Sleep(1200);
+
+            intro.runIntro();
+            Thread.Sleep(800);
+
+            shop.RunShop();
+
+            // if cart empty, nothing to buy
             if (shop.Cart.Count == 0)
             {
-                Console.WriteLine("store owner: you added nothing. | open store = 1 | exit = 2");
-                string fuck = Console.ReadLine();
-                if (!int.TryParse(fuck, out int yay))
-                Console.WriteLine("store owner: bruh");
-                
-                else if (yay == 1) 
-                {shop.RunShop();}
-                
-
-                else if (yay == 2)
-                {
-                Console.WriteLine("store owner: then get out of my sight");
-                Environment.Exit(0);
-                }
+                Console.WriteLine("store owner: you added nothing.");
+                Thread.Sleep(1500);
+                return;
             }
 
-            Console.WriteLine("IM NOT GETTING PUNCHED IN THE FACE(;");       
+            // total price
+            int total = 0;
+            foreach (var entry in shop.Cart)
+                total += entry.Value.Price * entry.Value.Quantity;
+
+            Console.WriteLine($"\nstore owner: total is {total}$");
+            Console.WriteLine($"you: i have {data.Money}$");
+            Thread.Sleep(1200);
+
+            if (data.Money < total)
+            {
+                Console.WriteLine("store owner: BROKE. come back when you got money.");
+                Thread.Sleep(1500);
+                return;
+            }
+
+            // pay
+            data.Money -= total;
+
+            // move cart -> inventory (save items by ID)
+            foreach (var entry in shop.Cart)
+            {
+                int id = entry.Key;
+                int qty = entry.Value.Quantity;
+
+                if (data.Inventory.ContainsKey(id))
+                    data.Inventory[id] += qty;
+                else
+                    data.Inventory[id] = qty;
+            }
+
+            SaveSystem.Save(data);
+
+            Console.WriteLine($"store owner: deal. money left: {data.Money}$");
+            Console.WriteLine("store owner: saved.");
+            Thread.Sleep(1500);
         }
     }
 }

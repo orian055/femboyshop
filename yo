@@ -1,0 +1,16 @@
+using System;
+
+namespace Game
+{
+   class start
+   {
+    public void runstart()
+    {
+            Console.WriteLine("you are at home.");
+            Console.WriteLine("where will you go?");
+            Console.WriteLine("1. forest");
+            Console.WriteLine("2. mall");
+            Console.WriteLine("3. gym");
+    }
+   }
+}
