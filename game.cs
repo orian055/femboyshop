@@ -2,6 +2,7 @@
 using System.Data.SqlTypes;
 using System.Net;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace Game
@@ -11,14 +12,22 @@ namespace Game
         static void Main(string[] args)
         {
             Random rnd = new Random();
-
+            
             Menus menu = new Menus();
-            Intro intro = new Intro();
 
             Tut tut = new Tut();
+            Work work = new Work();
+            Inventory inv = new Inventory();
+            Explore exp = new Explore(rnd);
+            Shop shop = new Shop(rnd);
+            Mountains marea = new Mountains();
+            Village vill = new Village();
+            
+            
 
             Console.WriteLine("heyyyyy");
             Thread.Sleep(1000);
+            
 
             while (true)
             {
@@ -47,7 +56,7 @@ namespace Game
                                     Console.WriteLine("no going back now");
                                     SaveData rewrite = new SaveData { Money = 100};
                                     SaveSystem.Save(rewrite);
-                                    RunGame(rewrite, rnd, intro);
+                                    RunGame(rewrite, rnd, tut, work, exp, inv, shop, marea, vill);
                                     break;
                                 }
                                 else if (yes == 2)
@@ -61,7 +70,7 @@ namespace Game
                         SaveData data = new SaveData { Money = 100 };
                         SaveSystem.Save(data);
 
-                        RunGame(data, rnd, intro);
+                        RunGame(data, rnd, tut, work, exp, inv, shop, marea, vill);
                         break;
                     }
 
@@ -75,7 +84,7 @@ namespace Game
                         }
 
                         SaveData data = SaveSystem.Load();
-                        RunGame(data, rnd, intro);
+                        RunGame(data, rnd, tut, work, exp, inv, shop, marea,vill);
                         break;
                     }
 
@@ -123,65 +132,73 @@ namespace Game
         }
         
         
-        static void RunGame(SaveData data, Random rnd, Intro intro)
+        static void RunGame(SaveData data, Random rnd, Tut tut, Work work, Explore exp, Inventory inv, Shop shop, Mountains marea, Village vill)
         {
+            tut.runTut();
            
-            Shop shop = new Shop(rnd);
-
-            Console.Clear();
-            Console.WriteLine($"Money: {data.Money}$");
-            Thread.Sleep(3000);
-
-            intro.runIntro();
-            Thread.Sleep(3000);
-
-            shop.RunShop();
-
-            
-            if (shop.Cart.Count == 0)
+           bool playing = true;
+           while (playing)
             {
-                Console.WriteLine("store owner: you added nothing.");
-                Thread.Sleep(3000);
-                return;
+                Console.Clear();
+                Console.WriteLine("[1] Train");
+                Console.WriteLine("[2] Work");
+                Console.WriteLine("[3] Gamble");
+                Console.WriteLine("[4] Explore");
+                Console.WriteLine("[5] ?");
+                Console.WriteLine("[6] Inventory");
+                Console.WriteLine("[0] Save & Exit");
+                string input = Console.ReadLine();
+                int choice = int.Parse(input);
+                
+                if (input == null)
+                {
+                    Console.WriteLine("(:");
+                    continue;
+                }
+
+                switch(choice)
+                {
+                  case 1:
+                    Console.WriteLine("coming off strong");
+                    Thread.Sleep(3000);
+                    break;
+                  case 2: 
+                  Console.WriteLine("You dont have a job, lets get creative!");
+                  Thread.Sleep(3000);
+                  work.Runwork(data, rnd);
+                  break;
+                  case 3:
+                     Console.WriteLine("I Like you");
+                     Thread.Sleep(3000);
+                     break;
+                  case 4: 
+                  Console.WriteLine("YAY! where we goin?");
+                  exp.RunExplore(data, marea, vill);
+                  Thread.Sleep(3000);
+                     break;
+                  case 5: 
+                  Console.WriteLine("Lets do something secret");
+                  Thread.Sleep(3000);
+                     break;
+                  case 6: 
+                  Console.WriteLine("check yo pockets");
+                  Thread.Sleep(3000);
+                  inv.runInv(data, shop.ShopItems);
+                     break;
+                  case 0:
+                  Console.WriteLine("Ill be waiting for you");
+                  SaveSystem.Save(data);
+                  playing = false;
+                  Thread.Sleep(3000);
+                     break;
+                  default:
+                  Console.WriteLine("pick 1-6");
+                  Thread.Sleep(3000);
+                  break; 
+                }
+                
             }
-
             
-            int total = 0;
-            foreach (var entry in shop.Cart)
-                total += entry.Value.Price * entry.Value.Quantity;
-
-            Console.WriteLine($"\nstore owner: thats {total}$");
-            Console.WriteLine($"you: i have {data.Money}$");
-            Thread.Sleep(3000);
-            // i plan to add a neogotiation option.
-            if (data.Money < total)
-            {
-                Console.WriteLine("store owner: Get your money up boy");
-                Thread.Sleep(3000);
-                return;
-            }
-
-            
-            data.Money -= total;
-
-            
-            foreach (var entry in shop.Cart)
-            {
-                int id = entry.Key;
-                int qty = entry.Value.Quantity;
-
-                if (data.Inventory.ContainsKey(id))
-                    data.Inventory[id] += qty;
-                else
-                    data.Inventory[id] = qty;
-            }
-
-            SaveSystem.Save(data);
-
-            Console.WriteLine("store owner: come back soon!");
-            Console.WriteLine($"money left: {data.Money}$");
-            Console.WriteLine("(saved.)");
-            Thread.Sleep(3000);
         }
     }
 }

@@ -7,6 +7,6 @@ namespace Game
         public int Money { get; set;} = 0;
 
         // itemid -> quantity
-        public Dictionary<int, int> Inventory { get; set;} = new Dictionary<int, int>();
+        public List<int> Inventory { get; set;} = new List<int>();
     }
 }

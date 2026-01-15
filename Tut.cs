@@ -6,6 +6,28 @@ namespace Game
     {
         public void runTut()
         {
+            Console.WriteLine("skip intro? 1 - yes | 2 - no");
+
+            int tutorial = 0;
+            bool valid = false;
+
+            while (!valid)
+            {
+                string input = Console.ReadLine();
+
+                if (int.TryParse(input, out tutorial) && (tutorial == 1 || tutorial == 2))
+                {
+                    valid = true;  
+                }
+                else
+                {
+                    Console.WriteLine("1 - YES | 2 - NO");
+                }
+            }
+
+            
+            if (tutorial == 2)  
+            {
         Console.WriteLine("YO");
         Thread.Sleep(3000);
         Console.WriteLine("WELCOME TRAVELER!");
@@ -44,4 +66,5 @@ namespace Game
         Thread.Sleep(3000);
         }
     }
+}
 }
